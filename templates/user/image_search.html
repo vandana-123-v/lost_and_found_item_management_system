@@ -1,0 +1,31 @@
+{% extends 'base.html' %}{% block content %}
+{% include 'components/heading.html' %}
+<p>Have a photo of your missing item? Compare it with photos of available, administrator-approved found items. You do not need to create a lost report first.</p>
+{% if clip_enabled %}
+<div class="notice"><strong>Local CLIP image matching is enabled.</strong> Your photo is processed locally by a CLIP model ({{ clip_model|default:"ViT-B/32" }}) and compared with found-item images. No external API is called. Similarity scores are estimates, not proof of ownership.</div>
+{% elif not ai_configured %}<div class="notice"><strong>Gemini is not configured.</strong> An administrator must set <code>AI_ENABLED=True</code> and a valid <code>GEMINI_API_KEY</code> in the server's <code>.env</code>, then restart Django. No AI results are generated while it is disabled.</div>{% endif %}
+<div class="form-layout"><form method="post" enctype="multipart/form-data" class="panel">{% csrf_token %}
+{% include 'components/form_fields.html' %}<div class="drop-zone" tabindex="0">Drop a photo here, or choose it above.<small>One image · JPG, PNG, WEBP · Up to 5 MB</small></div><div class="image-previews" aria-live="polite"></div>
+<button class="button">Search matching found items →</button></form>
+<aside class="panel">
+<h2>How image matching works</h2>
+{% if clip_enabled %}
+<ol>
+<li>Your photo is encoded with a local CLIP model into a vector.</li>
+<li>The system selects up to 12 eligible found reports using category, brand and color metadata.</li>
+<li>CLIP compares your photo's vector with each found item's pre-computed image embedding.</li>
+</ol>
+{% else %}
+<ol>
+<li>Gemini describes your photo.</li>
+<li>The system selects up to 12 likely found reports using category, brand and color.</li>
+<li>Gemini compares your photo directly with their photos.</li>
+</ol>
+{% endif %}
+<p>Optional category and location filters narrow the search. Search photos are not saved as reports. Only approved or matched found reports with images are eligible; your own reports and returned items are excluded.</p>
+<p class="help">Similarity scores are estimates, not probabilities or proof of ownership. A human administrator must verify any claim.</p>
+<a href="{% url 'item_list' %}?type=FOUND">Search manually →</a></aside></div>
+{% if searched %}<section aria-live="polite"><h2>Matching found items</h2><p>Compared {{ search_result.compared }} of {{ search_result.eligible }} eligible reports. {% if search_result.eligible > search_result.compared %}This is a bounded search, not every report. Narrow the category or location to refine results.{% endif %}</p>
+{% if search_result.features %}<p class="notice">Detected: {{ search_result.features.object }} · {{ search_result.features.primary_color }} · {{ search_result.features.category }}. If this looks wrong, try another photo or set the category yourself.</p>{% endif %}
+<div class="item-grid">{% for result in search_result.results %}<article class="panel"><span class="ai-label">AI VISUAL SIMILARITY</span><strong class="match-score"> {{ result.score }}%</strong>{% with item=result.item %}{% include 'components/item_card.html' %}{% endwith %}<p>{{ result.reason }}</p><div class="actions"><a class="button secondary small" href="{{ result.item.get_absolute_url }}">View item</a><a class="button small" href="{% url 'claim_create' result.item.pk %}">Claim this item</a></div></article>{% empty %}<div class="panel empty wide"><h3>No close visual matches found</h3><p>{% if not search_result.eligible %}No available found reports with photos match these filters.{% else %}None of the compared items reached the 60% similarity threshold. This does not mean your item is absent from the system.{% endif %} Try a clearer photo, adjust the filters, or browse manually.</p><a href="{% url 'item_list' %}?type=FOUND">Browse found items →</a></div>{% endfor %}</div></section>{% endif %}
+<a href="{% url 'matches' %}">Back to report-based suggestions →</a>{% endblock %}

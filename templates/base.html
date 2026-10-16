@@ -1,0 +1,37 @@
+{% load static %}<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="A secure community for reconnecting lost belongings with their owners.">
+<title>{{ title|default:"Find what matters" }} · Lost & Found Hub</title>
+<link rel="stylesheet" href="{% static 'css/main.css' %}"><script src="{% static 'js/main.js' %}" defer></script></head>
+<body><a class="skip" href="#main">Skip to content</a>
+{% if user.is_authenticated %}
+<aside class="sidebar" id="sidebar"><a class="brand" href="{% url 'dashboard' %}"><span class="brand-mark">⌘</span><span>Lost & Found<span class="brand-sub">COMMUNITY HUB</span></span></a>
+<button class="drawer-close" aria-label="Close navigation">×</button><div class="workspace-label">{% if user.is_staff %}ADMINISTRATION{% else %}YOUR WORKSPACE{% endif %}</div>
+<nav aria-label="Workspace">
+{% if user.is_staff %}
+<a href="{% url 'admin_dashboard' %}"><span>▦</span> Overview</a><a href="{% url 'admin_users' %}"><span>♙</span> Manage users</a>
+<a href="{% url 'admin_items' %}?type=LOST"><span>⌕</span> Lost reports</a><a href="{% url 'admin_items' %}?type=FOUND"><span>◇</span> Found reports</a>
+<a href="{% url 'admin_claims' %}"><span>▤</span> Review claims</a><a href="{% url 'admin_categories' %}"><span>⊞</span> Categories</a>
+<a href="{% url 'image_search' %}"><span>✧</span> AI matches</a><a href="{% url 'reports' %}"><span>▥</span> Reports & insights</a>
+<a href="{% url 'admin_notifications' %}"><span>♧</span> Send notifications</a><a href="{% url 'audit_logs' %}"><span>≡</span> Audit trail</a>
+<a href="{% url 'system_settings' %}"><span>⚙</span> Settings</a>
+{% else %}
+<a href="{% url 'dashboard' %}"><span>▦</span> Dashboard</a><a href="{% url 'item_list' %}"><span>⌕</span> Search items</a>
+<a href="{% url 'my_items' %}"><span>▣</span> My reports</a><a href="{% url 'image_search' %}"><span>✧</span> AI matches</a>
+<a href="{% url 'claim_list' %}"><span>▤</span> My claims</a>
+<div class="nav-divider"></div><a href="{% url 'report_item' 'LOST' %}"><span>−</span> Report lost item</a><a href="{% url 'report_item' 'FOUND' %}"><span>+</span> Report found item</a>
+{% endif %}
+<a href="{% url 'notifications' %}"><span>♧</span> Notifications <b class="count">{{ unread_count }}</b></a><a href="{% url 'profile' %}"><span>○</span> Profile</a>
+</nav><div class="sidebar-bottom"><div class="safe-label">◇ &nbsp; A little care. A big difference.</div><form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="logout">↪ &nbsp; Sign out</button></form></div></aside>
+<div class="app-shell"><header class="topbar"><button class="icon-button mobile-menu" aria-controls="sidebar" aria-expanded="false" aria-label="Toggle navigation">☰</button><span class="breadcrumb">WORKSPACE <span>/</span> {{ title }}</span><div class="top-actions"><button class="theme-toggle icon-button" aria-label="Switch color theme">◐</button>
+<details class="inbox-menu"><summary aria-label="Open notifications">♧ <span class="count unread-count">{{ unread_count }}</span></summary><div class="inbox-pop"><strong>Notifications</strong>{% for note in inbox_preview %}<p>{{ note.title }}</p>{% empty %}<p>You're all caught up.</p>{% endfor %}<a href="{% url 'notifications' %}">View inbox →</a></div></details>
+<a class="avatar" href="{% url 'profile' %}" aria-label="Your profile">{{ user.username|slice:":1"|upper }}</a></div></header>
+{% else %}
+<header class="public-nav"><a class="brand" href="{% url 'home' %}"><span class="brand-mark">⌘</span><span>Lost & Found<span class="brand-sub">COMMUNITY HUB</span></span></a>
+<nav aria-label="Main"><a href="/#about">About</a><a href="/#features">Features</a><a href="/#how-it-works">How it works</a><a href="/#contact">Contact</a></nav><div class="actions"><button class="theme-toggle icon-button" aria-label="Switch color theme">◐</button><a href="{% url 'login' %}" class="login-link">Log in</a><a class="button small" href="{% url 'register' %}">Join the Hub ↗</a></div></header>
+{% endif %}
+<div class="toasts" aria-live="polite">{% for message in messages %}<div class="toast {{ message.tags }}">{{ message }}<button aria-label="Dismiss message" class="dismiss">×</button></div>{% endfor %}</div>
+<main id="main" class="{% if user.is_authenticated %}main-content{% else %}public-main{% endif %}">{% block content %}{% endblock %}</main>
+{% if user.is_authenticated %}</div>{% else %}<footer><a class="brand" href="{% url 'home' %}">⌘ &nbsp; Lost & Found Hub</a><p>Bringing belongings back. Bringing people together.</p><a href="{% url 'privacy' %}">Terms & privacy</a><span>LOST & FOUND ITEM MANAGEMENT SYSTEM</span></footer>{% endif %}
+<dialog id="confirm-dialog"><h2>Are you sure?</h2><p id="confirm-message">Please confirm this action.</p><div class="actions"><button class="button secondary" data-confirm-cancel>Cancel</button><button class="button danger" data-confirm-yes>Confirm</button></div></dialog>
+{% block scripts %}{% endblock %}</body></html>

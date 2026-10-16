@@ -1,0 +1,6 @@
+{% if form.non_field_errors %}<div class="form-errors" role="alert">{{ form.non_field_errors }}</div>{% endif %}
+{% for field in form %}{% if form_sectioned %}{% if field.name == 'title' %}<h3 class="form-section-title">01 · Item details</h3>{% elif field.name == 'event_date' %}<h3 class="form-section-title">02 · When and where</h3>{% elif field.name == 'private_identifying_details' %}<h3 class="form-section-title">03 · Private verification details</h3>{% elif field.name == 'images' %}<h3 class="form-section-title">04 · Photos</h3>{% endif %}{% endif %}<div class="field {% if field.field.widget.input_type == 'checkbox' %}checkbox-field{% endif %}">
+{{ field.label_tag }}<div class="input-wrap">{{ field }}{% if field.field.widget.input_type == 'password' %}<button type="button" class="password-toggle" aria-label="Show password">Show</button>{% endif %}</div>
+{% if field.help_text %}<div class="help">{{ field.help_text|safe }}</div>{% endif %}{% if field.errors %}<div class="field-errors" role="alert">{{ field.errors }}</div>{% endif %}
+{% if field.name == 'password1' %}<div class="strength" aria-live="polite">Password strength: <span>Enter a password</span><meter min="0" max="5" value="0"></meter></div>{% endif %}
+</div>{% endfor %}
